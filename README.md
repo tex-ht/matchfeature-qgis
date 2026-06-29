@@ -3,6 +3,8 @@
 Copy **attributes + visual style** from one feature to one or more features
 **within the same layer**, inspired by AutoCAD's `MATCHPROP` command.
 
+*Idea & design: **Hugo P. Teixeira** · Built with **Emergent** · Contact: texfap@gmail.com*
+
 ![icon](matchprop/icon.png)
 
 ## What it does
@@ -109,5 +111,12 @@ style copy for Single / Categorized / Graduated renderers.
 - Copy across different layers with field mapping
 - Options dialog (attributes only / style only / both) + per-field checkboxes
 - Configurable keyboard shortcut
+- Interactive map tool (click source, then click each target on the canvas)
 - Translations (PT-BR, EN, ES)
 - Submission to plugins.qgis.org
+
+## Credits & license
+
+- **Idea & design:** Hugo P. Teixeira (texfap@gmail.com)
+- **Development:** Emergent
+- Shared with the QGIS community. Suggested license for public release: GPL v2+.
