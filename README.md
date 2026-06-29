@@ -1,23 +1,24 @@
-# MatchProp — QGIS 3 plugin
+# MatchFeature — QGIS 3 plugin
 
 Copy **attributes + visual style** from one feature to one or more features
-**within the same layer**, inspired by AutoCAD's `MATCHPROP` command.
+**within the same layer**, in two steps (inspired by AutoCAD's `MATCHPROP`).
 
 *Idea & design: **Hugo P. Teixeira** · Built with **Emergent** · Contact: texfap@gmail.com*
 
-![icon](matchprop/icon.png)
+![icon](matchfeature/icon.png)
 
 ## What it does
 
-Two-step workflow, exactly like AutoCAD's `MATCHPROP`:
+Two-step workflow ("match properties"):
 
-1. Select **exactly 1 source feature** and click the **MatchProp** button →
+1. Select **exactly 1 source feature** and click the **MatchFeature** button →
    its properties are **copied** (a green message confirms how many fields).
 2. Select **1 or more target features** and click the button **again** → the
    copied properties are **applied** to the targets. The source is then cleared.
 
-- **Attributes**: copies every editable field, **skipping** primary-key /
-  auto-increment columns (`fid`, `id`, …) and read-only fields.
+- **Attributes**: copies every editable field, **skipping** identifier /
+  auto-increment columns (`fid`, `id`, `id1`, `gid`, `objectid`, `*_id`, …) and
+  read-only fields.
 - **Style**: for *Categorized / Graduated* renderers the classification
   attribute is copied, so the target inherits the source symbol; *Single
   Symbol* is shared by the whole layer (nothing to do).
@@ -35,63 +36,52 @@ Two-step workflow, exactly like AutoCAD's `MATCHPROP`:
 
 | Situation | Message | Level |
 |-----------|---------|-------|
-| Success | `Properties copied to N feature(s)` | Success (green) |
+| Source copied | `Source copied (N field(s))…` | Success (green) |
+| Properties applied | `Properties applied to N feature(s)` | Success |
 | Layer not in edit mode | `Layer is not in edit mode…` | Warning (yellow) |
-| Fewer than 2 features selected | `Select at least 2 features…` | Warning |
+| Wrong selection | `Step 1/2: select …` | Warning |
 | Write error | `Error: …` | Critical (red) |
 
 ## Project layout
 
 ```
-matchprop/
-├── __init__.py            # classFactory entry point
-├── matchprop.py           # plugin class: toolbar button, menu, validation
-├── matchprop_core.py      # pure copy logic (attributes + style)
-├── metadata.txt           # name, version 0.1.0, QGIS >= 3.22, Qt6 supported
-├── icon.png               # toolbar icon (brush + layers + copy arrow)
-└── resources.qrc          # icon resource (optional; icon also loaded by path)
+matchfeature/
+├── __init__.py             # classFactory entry point
+├── matchfeature.py         # plugin class: toolbar button, menu, validation
+├── matchfeature_core.py    # pure copy logic (attributes + style)
+├── metadata.txt            # name MatchFeature, version, QGIS >= 3.22, Qt6
+├── icon.png                # toolbar icon (brush + layers + copy arrow)
+├── resources.qrc           # icon resource (icon also loaded by path)
+└── LICENSE                 # GPL v2
 ```
 
 ## Installation
 
 ### From ZIP (recommended)
-1. Build the zip (see below) or download `matchprop.zip`.
+1. Build the zip (see below) or download `matchfeature.zip`.
 2. In QGIS: *Plugins ▸ Manage and Install Plugins… ▸ Install from ZIP*.
 3. Select the zip and click **Install Plugin**.
 
 ### Manual
-Copy the `matchprop/` folder into your QGIS plugins directory:
+Copy the `matchfeature/` folder into your QGIS plugins directory:
 - Linux: `~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/`
 - Windows: `%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins\`
 - macOS: `~/Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/`
 
-Then enable **MatchProp** in the Plugin Manager.
+Then enable **MatchFeature** in the Plugin Manager.
 
 ## Compatibility
 
 - QGIS **3.22+** (tested target **3.34 LTR**), Qt5 **and** Qt6
-  (`supportsQt6=True`). The code imports Qt through `qgis.PyQt`, so it works on
-  both Qt bindings. The icon is loaded from disk (`icon.png`), so there is no
-  `pyrcc` compilation step required.
+  (`supportsQt6=True`). Qt is imported through `qgis.PyQt`, so it works on both
+  bindings. The icon is loaded from disk, so no `pyrcc` step is required.
 
-## Development
-
-```bash
-# Optional packaging helper
-pip install pb-tool
-
-# Reload while developing: install the "Plugin Reloader" plugin in QGIS.
-```
-
-### Build the distributable ZIP
+## Build the distributable ZIP
 From the repository root:
 ```bash
-zip -r matchprop.zip matchprop -x '*.pyc' -x '*__pycache__*'
+zip -r matchfeature.zip matchfeature -x '*.pyc' -x '*__pycache__*'
 ```
-or with pb_tool from inside `matchprop/` (after adding a `pb_tool.cfg`):
-```bash
-pb_tool zip
-```
+The zip must contain the top-level `matchfeature/` folder with `metadata.txt`.
 
 ## Tests
 
@@ -102,21 +92,17 @@ The core logic is decoupled from QGIS and unit-tested with lightweight mocks
 python3 -m pytest tests/ -v
 ```
 
-Covered: source selection (min `fid`), attribute copy, primary-key/read-only
-skipping, silent skip of incompatible fields, Undo command bracketing, and
-style copy for Single / Categorized / Graduated renderers.
-
 ## Roadmap
 
 - Copy across different layers with field mapping
 - Options dialog (attributes only / style only / both) + per-field checkboxes
 - Configurable keyboard shortcut
 - Interactive map tool (click source, then click each target on the canvas)
-- Translations (PT-BR, EN, ES)
+- Translations (PT-PT, PT-BR, EN, ES)
 - Submission to plugins.qgis.org
 
 ## Credits & license
 
 - **Idea & design:** Hugo P. Teixeira (texfap@gmail.com)
 - **Development:** Emergent
-- Shared with the QGIS community. Suggested license for public release: GPL v2+.
+- License: **GPL v2+** (`matchfeature/LICENSE`). Shared with the QGIS community.

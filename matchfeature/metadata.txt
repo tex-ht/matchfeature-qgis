@@ -8,8 +8,8 @@ version=0.3.1
 author=Hugo P. Teixeira & Emergent
 email=texfap@gmail.com
 
-tracker=https://example.com/matchprop/issues
-repository=https://example.com/matchprop
+tracker=https://github.com/tex-ht/matchfeature-qgis/issues
+repository=https://github.com/tex-ht/matchfeature-qgis
 
 # Recommended items:
 hasProcessingProvider=no
@@ -18,8 +18,8 @@ changelog=0.3.1 - Toolbar icon now fills the button (matches native QGIS icon si
     0.2.1 - Smarter key-field detection (also skips id1, gid, objectid, *_id, ...); larger toolbar icon.
     0.2.0 - Two-step copy/paste workflow (pick source, then apply to targets) to avoid wrong source detection.
     0.1.0 - Initial release: copy attributes + style within the same layer, with Undo support.
-tags=attributes,style,copy,matchprop,editing,symbology,vector
-homepage=https://example.com/matchprop
+tags=attributes,style,copy,matchfeature,match properties,editing,symbology,vector
+homepage=https://github.com/tex-ht/matchfeature-qgis
 category=Vector
 icon=icon.png
 experimental=False

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Core MATCHPROP logic: capture a source feature's properties and apply
+"""Core MatchFeature logic: capture a source feature's properties and apply
 them to target features (two-step "copy then paste" workflow).
 
 This module is framework-light: it relies only on the public PyQGIS object
@@ -29,7 +29,7 @@ def is_key_field_name(name):
     return bool(_KEY_NAME_RE.search(n))
 
 
-class MatchPropResult(object):
+class MatchFeatureResult(object):
     """Outcome of an apply operation."""
 
     def __init__(self):
@@ -42,7 +42,7 @@ class MatchPropResult(object):
 
     def __repr__(self):  # pragma: no cover - debugging helper
         return (
-            "MatchPropResult(success=%r, targets_updated=%r, "
+            "MatchFeatureResult(success=%r, targets_updated=%r, "
             "attributes_copied=%r, fields_skipped=%r, error=%r)"
             % (
                 self.success,
@@ -113,10 +113,10 @@ def apply_source(layer, snapshot, target_features, result=None):
     as warnings instead of aborting. The layer is repainted at the end so any
     categorized / graduated style driven by a copied attribute updates too.
 
-    :returns: MatchPropResult
+    :returns: MatchFeatureResult
     """
     if result is None:
-        result = MatchPropResult()
+        result = MatchFeatureResult()
 
     targets = list(target_features)
     fields = layer.fields()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Unit tests for matchprop_core using PyQGIS mocks (no QGIS required)."""
+"""Unit tests for matchfeature_core using PyQGIS mocks (no QGIS required)."""
 
 import os
 import sys
@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from matchprop.matchprop_core import (  # noqa: E402
+from matchfeature.matchfeature_core import (  # noqa: E402
     editable_field_indexes,
     capture_source,
     apply_source,

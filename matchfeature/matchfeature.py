@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""MATCHPROP plugin main class.
+"""MatchFeature plugin main class.
 
-Two-step workflow (AutoCAD MATCHPROP style):
+Two-step workflow (inspired by AutoCAD's MATCHPROP):
   1. Select exactly 1 source feature and click the button -> properties are
      COPIED (stored).
   2. Select 1 or more target features and click the button again -> properties
@@ -16,11 +16,11 @@ from qgis.PyQt.QtWidgets import QAction
 
 from qgis.core import Qgis, QgsWkbTypes
 
-from .matchprop_core import capture_source, apply_source
+from .matchfeature_core import capture_source, apply_source
 
 
-class MatchProp(object):
-    """QGIS plugin implementation registering the MATCHPROP action."""
+class MatchFeature(object):
+    """QGIS plugin implementation registering the MatchFeature action."""
 
     def __init__(self, iface):
         self.iface = iface
@@ -38,13 +38,13 @@ class MatchProp(object):
     # ------------------------------------------------------------------ utils
     @staticmethod
     def tr(message):
-        return QCoreApplication.translate("MatchProp", message)
+        return QCoreApplication.translate("MatchFeature", message)
 
     def _icon(self):
         path = os.path.join(self.plugin_dir, "icon.png")
         if os.path.exists(path):
             return QIcon(path)
-        return QIcon(":/plugins/matchprop/icon.png")
+        return QIcon(":/plugins/matchfeature/icon.png")
 
     def _reset_source(self):
         self._source = None

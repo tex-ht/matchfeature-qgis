@@ -1,13 +1,12 @@
-# Publishing MatchProp to the QGIS community
+# Publishing MatchFeature to the QGIS community
 
 ## A. Requirements checklist (plugins.qgis.org)
-- [x] Open-source license compatible with GPL (we ship **GPL v2+**, file `matchprop/LICENSE`).
+- [x] Open-source license compatible with GPL (we ship **GPL v2+**, file `matchfeature/LICENSE`).
 - [x] Original code and original icon (no Autodesk assets).
+- [x] Trademark-safe name: **MatchFeature** (no "MATCHPROP"/"AutoCAD" in the name).
 - [x] `metadata.txt` complete: name, version, description, about, author, email,
       qgisMinimumVersion, tags, changelog, `experimental=False`.
-- [ ] Choose a final, trademark-safe plugin **name** (avoid "MATCHPROP"/"AutoCAD").
-- [ ] A public source repository URL (GitHub) in `repository=` and `tracker=`.
-- [ ] A homepage URL (can be the GitHub repo).
+- [ ] Create the GitHub repo **matchfeature-qgis** and confirm the URLs in `metadata.txt`.
 - [ ] At least one screenshot / short GIF showing the 2-step workflow.
 
 ## B. Get a plugins.qgis.org account
@@ -17,31 +16,30 @@
 
 ## C. Upload the plugin
 1. Build the zip: from the repo root run
-   `zip -r matchprop.zip matchprop -x '*.pyc' -x '*__pycache__*'`
-   (or right-click the `matchprop` folder in Windows → "Compress to ZIP").
-   The zip MUST contain the top-level `matchprop/` folder with `metadata.txt`.
-2. On plugins.qgis.org click **"Upload a plugin"** and select `matchprop.zip`.
+   `zip -r matchfeature.zip matchfeature -x '*.pyc' -x '*__pycache__*'`
+   (or right-click the `matchfeature` folder in Windows → "Compress to ZIP").
+   The zip MUST contain the top-level `matchfeature/` folder with `metadata.txt`.
+2. On plugins.qgis.org click **"Upload a plugin"** and select `matchfeature.zip`.
 3. The site validates `metadata.txt`. Fix any reported field and re-upload.
 4. After approval it appears in QGIS → *Plugins ▸ Manage and Install Plugins* for
    everyone (no "Install from ZIP" needed by users).
 
-## D. Update the repository/tracker URLs before publishing
-Edit `matchprop/metadata.txt`:
+## D. Repository/tracker URLs (already set in metadata.txt)
 ```
-homepage=https://github.com/<your-user>/matchprop-qgis
-repository=https://github.com/<your-user>/matchprop-qgis
-tracker=https://github.com/<your-user>/matchprop-qgis/issues
+homepage=https://github.com/tex-ht/matchfeature-qgis
+repository=https://github.com/tex-ht/matchfeature-qgis
+tracker=https://github.com/tex-ht/matchfeature-qgis/issues
 ```
 
 ## E. Alternative / faster sharing (no review needed)
-- **GitHub Release:** tag the repo and attach `matchprop.zip` as a release asset.
+- **GitHub Release:** tag the repo and attach `matchfeature.zip` as a release asset.
   Users install via *Install from ZIP*.
-- **QGIS community channels:** post on the QGIS users mailing list, r/QGIS,
-  GIS StackExchange, LinkedIn/Twitter with a short demo GIF.
+- **QGIS community channels:** QGIS users mailing list, r/QGIS, GIS StackExchange,
+  LinkedIn/Twitter with a short demo GIF.
 
-## F. Suggested announcement (PT) — draft
-> 🧰 Novo plugin para QGIS: **<NOME>** — copia atributos e estilo de uma feição
-> para outras na mesma camada, em 2 passos (à la MATCHPROP do AutoCAD).
-> Ignora campos-chave automaticamente, respeita o Undo (Ctrl+Z) e funciona com
-> pontos, linhas e polígonos. Ideia & design: Hugo P. Teixeira. Grátis e open
-> source (GPL v2+). Feedback é bem-vindo! 🙏
+## F. Announcement draft (PT-PT)
+> 🧰 Novo plugin para QGIS: **MatchFeature** — copia atributos e estilo de uma
+> feição para outras na mesma camada, em 2 passos (inspirado no MATCHPROP do
+> AutoCAD). Ignora campos identificadores automaticamente, respeita o Anular
+> (Ctrl+Z) e funciona com pontos, linhas e polígonos. Ideia e conceção: Hugo P.
+> Teixeira. Gratuito e de código aberto (GPL v2+). O vosso feedback é bem-vindo! 🙏

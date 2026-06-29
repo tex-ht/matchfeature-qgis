@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Lightweight PyQGIS mocks for unit testing matchprop_core without QGIS.
+"""Lightweight PyQGIS mocks for unit testing matchfeature_core without QGIS.
 
 These mocks reproduce just enough of the QgsVectorLayer / QgsFeature protocol
-used by matchprop_core: fields, selection, edit-command bracketing,
+used by matchfeature_core: fields, selection, edit-command bracketing,
 changeAttributeValue, primaryKeyAttributes and renderer classification.
 """
 
