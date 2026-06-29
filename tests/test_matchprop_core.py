@@ -91,7 +91,7 @@ class TestApplySource(unittest.TestCase):
         layer, f_src, f_t1, _ = make_layer()
         snap = capture_source(layer, f_src)
         apply_source(layer, snap, [f_t1])
-        self.assertEqual(layer.edit_commands, ["MatchProp: apply properties"])
+        self.assertEqual(layer.edit_commands, ["MatchFeature: apply properties"])
         self.assertEqual(layer.committed_commands, 1)
         self.assertEqual(layer.destroyed_commands, 0)
         self.assertEqual(layer.repaint_count, 1)

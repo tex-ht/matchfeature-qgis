@@ -121,7 +121,7 @@ def apply_source(layer, snapshot, target_features, result=None):
     targets = list(target_features)
     fields = layer.fields()
 
-    layer.beginEditCommand("MatchProp: apply properties")
+    layer.beginEditCommand("MatchFeature: apply properties")
     copied = 0
     try:
         for target in targets:

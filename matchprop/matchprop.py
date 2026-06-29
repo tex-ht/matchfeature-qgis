@@ -26,7 +26,7 @@ class MatchProp(object):
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
         self.actions = []
-        self.menu = "&MatchProp"
+        self.menu = "&MatchFeature"
         self.toolbar = None
         self.action = None
 
@@ -53,14 +53,14 @@ class MatchProp(object):
 
     # ----------------------------------------------------------------- gui api
     def initGui(self):
-        self.toolbar = self.iface.addToolBar("MatchProp")
-        self.toolbar.setObjectName("MatchPropToolbar")
+        self.toolbar = self.iface.addToolBar("MatchFeature")
+        self.toolbar.setObjectName("MatchFeatureToolbar")
 
-        self.action = QAction(self._icon(), self.tr("MatchProp"), self.iface.mainWindow())
-        self.action.setObjectName("MatchPropAction")
+        self.action = QAction(self._icon(), self.tr("MatchFeature"), self.iface.mainWindow())
+        self.action.setObjectName("MatchFeatureAction")
         self.action.setToolTip(
             self.tr(
-                "MatchProp (2 steps): 1) select the SOURCE feature and click to "
+                "MatchFeature (2 steps): 1) select the SOURCE feature and click to "
                 "copy; 2) select the TARGET feature(s) and click again to apply."
             )
         )
@@ -105,7 +105,7 @@ class MatchProp(object):
 
         ok, level, message = self._validate_layer(layer)
         if not ok:
-            bar.pushMessage(self.tr("MatchProp"), message, level=level, duration=6)
+            bar.pushMessage(self.tr("MatchFeature"), message, level=level, duration=6)
             return
 
         selected = list(layer.selectedFeatures())
@@ -123,7 +123,7 @@ class MatchProp(object):
     def _do_copy(self, layer, selected, bar):
         if len(selected) != 1:
             bar.pushMessage(
-                self.tr("MatchProp"),
+                self.tr("MatchFeature"),
                 self.tr(
                     "Step 1: select exactly 1 SOURCE feature, then click to copy "
                     "its properties."
@@ -138,10 +138,10 @@ class MatchProp(object):
         self._source_layer_id = layer.id()
         self._source_fid = source.id()
         bar.pushMessage(
-            self.tr("MatchProp"),
+            self.tr("MatchFeature"),
             self.tr(
                 "Source copied (%d field(s)). Now select the target feature(s) "
-                "and click MatchProp again to apply."
+                "and click MatchFeature again to apply."
             )
             % len(self._source),
             level=Qgis.Success,
@@ -155,7 +155,7 @@ class MatchProp(object):
 
         if not targets:
             bar.pushMessage(
-                self.tr("MatchProp"),
+                self.tr("MatchFeature"),
                 self.tr(
                     "Source is copied. Step 2: select at least 1 TARGET feature "
                     "(different from the source) and click again."
@@ -169,7 +169,7 @@ class MatchProp(object):
 
         if not result.success or result.error:
             bar.pushMessage(
-                self.tr("MatchProp"),
+                self.tr("MatchFeature"),
                 self.tr("Error: ") + (result.error or self.tr("unknown error")),
                 level=Qgis.Critical,
                 duration=8,
@@ -182,7 +182,7 @@ class MatchProp(object):
         if result.fields_skipped:
             detail = self.tr(" (skipped: ") + ", ".join(result.fields_skipped) + ")"
             bar.pushMessage(
-                self.tr("MatchProp"),
+                self.tr("MatchFeature"),
                 self.tr("Properties applied to %d feature(s)") % result.targets_updated
                 + detail,
                 level=Qgis.Warning,
@@ -190,7 +190,7 @@ class MatchProp(object):
             )
         else:
             bar.pushMessage(
-                self.tr("MatchProp"),
+                self.tr("MatchFeature"),
                 self.tr("Properties applied to %d feature(s)") % result.targets_updated,
                 level=Qgis.Success,
                 duration=5,
