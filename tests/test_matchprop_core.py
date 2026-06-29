@@ -44,6 +44,17 @@ class TestEditableFields(unittest.TestCase):
         layer, _, _, _ = make_layer(read_only_indexes=[2])
         self.assertEqual(editable_field_indexes(layer), [1, 3])
 
+    def test_skips_identifier_like_fields(self):
+        # id1 / gid / cod_id are identifiers -> excluded; idade/nome kept
+        feats = [MockFeature(1, [1, 100, 9, 50, "ROAD", 7])]
+        layer = MockVectorLayer(
+            field_names=["fid", "id1", "gid", "idade", "nome", "cod_id"],
+            features=feats,
+        )
+        idxs = editable_field_indexes(layer)
+        # keep idade (3) and nome (4); drop fid(0), id1(1), gid(2), cod_id(5)
+        self.assertEqual(idxs, [3, 4])
+
 
 class TestCaptureSource(unittest.TestCase):
     def test_snapshot_values(self):

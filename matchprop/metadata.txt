@@ -4,7 +4,7 @@ qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
 description=Copy attributes and visual style from one feature to others in the same layer, AutoCAD MATCHPROP style (two-step: copy then apply).
 about=MatchProp brings AutoCAD's MATCHPROP idea to QGIS. It works in two simple steps inside a single editable vector layer: (1) select ONE source feature and click the button to COPY its attributes; (2) select one or more target features and click again to APPLY those values to them. It copies every editable field while skipping primary-key/auto-increment columns (fid, id, ...) and read-only fields, and for Categorized/Graduated styles it copies the classification attribute so targets inherit the source symbol. Incompatible fields are skipped silently, the source feature is never modified, and the whole apply step is a single Undo (Ctrl+Z). Works with point, line and polygon layers. Idea & design by Hugo P. Teixeira; built with Emergent.
-version=0.2.0
+version=0.2.1
 author=Hugo P. Teixeira & Emergent
 email=texfap@gmail.com
 
@@ -13,7 +13,8 @@ repository=https://example.com/matchprop
 
 # Recommended items:
 hasProcessingProvider=no
-changelog=0.2.0 - Two-step copy/paste workflow (pick source, then apply to targets) to avoid wrong source detection.
+changelog=0.2.1 - Smarter key-field detection (also skips id1, gid, objectid, *_id, ...); larger toolbar icon.
+    0.2.0 - Two-step copy/paste workflow (pick source, then apply to targets) to avoid wrong source detection.
     0.1.0 - Initial release: copy attributes + style within the same layer, with Undo support.
 tags=attributes,style,copy,matchprop,editing,symbology,vector
 homepage=https://example.com/matchprop

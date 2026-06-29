@@ -6,8 +6,27 @@ This module is framework-light: it relies only on the public PyQGIS object
 protocol (duck typing) so it can be unit tested with lightweight mocks.
 """
 
+import re
+
 # Field names that are always treated as auto-managed keys and never copied.
 DEFAULT_SKIP_FIELDS = {"fid", "id", "ogc_fid", "objectid", "gid"}
+
+# Identifier-like field names that should not be copied (id, id1, gid,
+# objectid, uid, uuid, pk, anything ending in _id / _fid). Carefully crafted
+# so legitimate words like "idade" or "identificacao" are NOT matched.
+_KEY_NAME_RE = re.compile(
+    r"^(?:f?id|gid|oid|objectid|uid|uuid|pk)\d*$|_f?id\d*$"
+)
+
+
+def is_key_field_name(name):
+    """Return True if ``name`` looks like an auto-managed identifier field."""
+    if not name:
+        return False
+    n = name.strip().lower()
+    if n in DEFAULT_SKIP_FIELDS:
+        return True
+    return bool(_KEY_NAME_RE.search(n))
 
 
 class MatchPropResult(object):
@@ -58,7 +77,7 @@ def editable_field_indexes(layer):
         except Exception:
             field = fields[idx]
         name = field.name()
-        if name is not None and name.lower() in DEFAULT_SKIP_FIELDS:
+        if is_key_field_name(name):
             continue
         try:
             if hasattr(layer, "fieldIsReadOnly") and layer.fieldIsReadOnly(idx):
