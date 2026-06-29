@@ -4,7 +4,7 @@ qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
 description=Copy attributes and visual style from one feature to others in the same layer (AutoCAD MATCHPROP style).
 about=MatchProp lets you select one source feature plus one or more target features in the same editable vector layer and copy the source attributes (skipping primary-key/read-only fields) and its visual style to the targets with a single click. Works with point, line and polygon layers and supports Undo/Redo.
-version=0.1.0
+version=0.2.0
 author=Emergent
 email=support@example.com
 
@@ -13,7 +13,8 @@ repository=https://example.com/matchprop
 
 # Recommended items:
 hasProcessingProvider=no
-changelog=0.1.0 - Initial release: copy attributes + style (Single/Categorized/Graduated/Rule-based) within the same layer, with Undo support.
+changelog=0.2.0 - Two-step copy/paste workflow (pick source, then apply to targets) to avoid wrong source detection.
+    0.1.0 - Initial release: copy attributes + style within the same layer, with Undo support.
 tags=attributes,style,copy,matchprop,editing,symbology,vector
 homepage=https://example.com/matchprop
 category=Vector

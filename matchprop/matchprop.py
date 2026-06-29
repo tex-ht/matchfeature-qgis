@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-"""MATCHPROP plugin main class: toolbar button, menu entry and validation."""
+"""MATCHPROP plugin main class.
+
+Two-step workflow (AutoCAD MATCHPROP style):
+  1. Select exactly 1 source feature and click the button -> properties are
+     COPIED (stored).
+  2. Select 1 or more target features and click the button again -> properties
+     are APPLIED to the targets. The source is then cleared.
+"""
 
 import os
 
@@ -9,7 +16,7 @@ from qgis.PyQt.QtWidgets import QAction
 
 from qgis.core import Qgis, QgsWkbTypes
 
-from .matchprop_core import match_properties
+from .matchprop_core import capture_source, apply_source
 
 
 class MatchProp(object):
@@ -23,6 +30,11 @@ class MatchProp(object):
         self.toolbar = None
         self.action = None
 
+        # State for the two-step copy/paste workflow.
+        self._source = None            # dict {field_index: value}
+        self._source_layer_id = None   # layer the source was copied from
+        self._source_fid = None        # feature id of the source
+
     # ------------------------------------------------------------------ utils
     @staticmethod
     def tr(message):
@@ -34,6 +46,11 @@ class MatchProp(object):
             return QIcon(path)
         return QIcon(":/plugins/matchprop/icon.png")
 
+    def _reset_source(self):
+        self._source = None
+        self._source_layer_id = None
+        self._source_fid = None
+
     # ----------------------------------------------------------------- gui api
     def initGui(self):
         self.toolbar = self.iface.addToolBar("MatchProp")
@@ -43,9 +60,8 @@ class MatchProp(object):
         self.action.setObjectName("MatchPropAction")
         self.action.setToolTip(
             self.tr(
-                "MatchProp: select the source feature + target features "
-                "(same layer, edit mode), then click here to copy attributes "
-                "and style."
+                "MatchProp (2 steps): 1) select the SOURCE feature and click to "
+                "copy; 2) select the TARGET feature(s) and click again to apply."
             )
         )
         self.action.setStatusTip(self.action.toolTip())
@@ -62,49 +78,94 @@ class MatchProp(object):
             del self.toolbar
             self.toolbar = None
         self.actions = []
+        self._reset_source()
 
     # ------------------------------------------------------------- validation
-    def _validate(self, layer):
-        """Return (ok, level, message). level is a Qgis.MessageLevel."""
+    def _validate_layer(self, layer):
+        """Return (ok, level, message)."""
         if layer is None or not hasattr(layer, "selectedFeatures"):
             return False, Qgis.Warning, self.tr("Select an active vector layer first.")
-
         try:
-            geom_type = layer.geometryType()
+            if layer.geometryType() == QgsWkbTypes.NullGeometry:
+                return False, Qgis.Warning, self.tr("This layer has no geometry.")
         except Exception:
-            geom_type = None
-        if geom_type == QgsWkbTypes.NullGeometry:
-            return False, Qgis.Warning, self.tr("This layer has no geometry.")
-
+            pass
         if not layer.isEditable():
             return (
                 False,
                 Qgis.Warning,
                 self.tr("Layer is not in edit mode. Toggle editing and try again."),
             )
-
-        count = layer.selectedFeatureCount()
-        if count < 2:
-            return (
-                False,
-                Qgis.Warning,
-                self.tr(
-                    "Select at least 2 features in the same layer: "
-                    "1 source + 1 or more targets."
-                ),
-            )
         return True, Qgis.Info, ""
 
     # -------------------------------------------------------------------- run
     def run(self):
-        layer = self.iface.activeLayer()
-        ok, level, message = self._validate(layer)
         bar = self.iface.messageBar()
+        layer = self.iface.activeLayer()
+
+        ok, level, message = self._validate_layer(layer)
         if not ok:
             bar.pushMessage(self.tr("MatchProp"), message, level=level, duration=6)
             return
 
-        result = match_properties(layer, copy_attrs=True, copy_visual=True)
+        selected = list(layer.selectedFeatures())
+
+        # If the armed source belongs to a different layer, drop it.
+        if self._source is not None and self._source_layer_id != layer.id():
+            self._reset_source()
+
+        if self._source is None:
+            self._do_copy(layer, selected, bar)
+        else:
+            self._do_apply(layer, selected, bar)
+
+    # ----------------------------------------------------------- step 1: copy
+    def _do_copy(self, layer, selected, bar):
+        if len(selected) != 1:
+            bar.pushMessage(
+                self.tr("MatchProp"),
+                self.tr(
+                    "Step 1: select exactly 1 SOURCE feature, then click to copy "
+                    "its properties."
+                ),
+                level=Qgis.Warning,
+                duration=6,
+            )
+            return
+
+        source = selected[0]
+        self._source = capture_source(layer, source)
+        self._source_layer_id = layer.id()
+        self._source_fid = source.id()
+        bar.pushMessage(
+            self.tr("MatchProp"),
+            self.tr(
+                "Source copied (%d field(s)). Now select the target feature(s) "
+                "and click MatchProp again to apply."
+            )
+            % len(self._source),
+            level=Qgis.Success,
+            duration=6,
+        )
+
+    # ---------------------------------------------------------- step 2: apply
+    def _do_apply(self, layer, selected, bar):
+        # Targets = current selection, excluding the source feature itself.
+        targets = [f for f in selected if f.id() != self._source_fid]
+
+        if not targets:
+            bar.pushMessage(
+                self.tr("MatchProp"),
+                self.tr(
+                    "Source is copied. Step 2: select at least 1 TARGET feature "
+                    "(different from the source) and click again."
+                ),
+                level=Qgis.Warning,
+                duration=6,
+            )
+            return
+
+        result = apply_source(layer, self._source, targets)
 
         if not result.success or result.error:
             bar.pushMessage(
@@ -115,13 +176,14 @@ class MatchProp(object):
             )
             return
 
-        if result.fields_skipped or result.warnings:
-            detail = ""
-            if result.fields_skipped:
-                detail = self.tr(" (skipped: ") + ", ".join(result.fields_skipped) + ")"
+        # Done -> clear the armed source.
+        self._reset_source()
+
+        if result.fields_skipped:
+            detail = self.tr(" (skipped: ") + ", ".join(result.fields_skipped) + ")"
             bar.pushMessage(
                 self.tr("MatchProp"),
-                self.tr("Properties copied to %d feature(s)") % result.targets_updated
+                self.tr("Properties applied to %d feature(s)") % result.targets_updated
                 + detail,
                 level=Qgis.Warning,
                 duration=7,
@@ -129,7 +191,7 @@ class MatchProp(object):
         else:
             bar.pushMessage(
                 self.tr("MatchProp"),
-                self.tr("Properties copied to %d feature(s)") % result.targets_updated,
+                self.tr("Properties applied to %d feature(s)") % result.targets_updated,
                 level=Qgis.Success,
                 duration=5,
             )

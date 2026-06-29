@@ -9,24 +9,21 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from matchprop.matchprop_core import (  # noqa: E402
-    select_source_and_targets,
-    copy_attributes,
-    copy_style,
-    match_properties,
+    editable_field_indexes,
+    capture_source,
+    apply_source,
 )
 from mock_qgis import (  # noqa: E402
     MockVectorLayer,
     MockFeature,
-    MockSingleSymbolRenderer,
     MockCategorizedRenderer,
-    MockGraduatedRenderer,
 )
 
 
 def make_layer(**kwargs):
     # fields: fid (pk), name, type, value
-    f_src = MockFeature(5, [5, "ROAD", "primary", 10])
-    f_t1 = MockFeature(2, [2, "", "", 0])
+    f_src = MockFeature(5, [5, "ROAD", "primary", 10])     # the SOURCE
+    f_t1 = MockFeature(2, [2, "", "", 0])                  # empty target (small fid!)
     f_t2 = MockFeature(9, [9, "", "", 0])
     layer = MockVectorLayer(
         field_names=["fid", "name", "type", "value"],
@@ -37,129 +34,75 @@ def make_layer(**kwargs):
     return layer, f_src, f_t1, f_t2
 
 
-class TestSourceSelection(unittest.TestCase):
-    def test_source_is_min_fid(self):
-        _, f_src, f_t1, f_t2 = make_layer()
-        # f_t1 has fid 2 (smallest) -> it becomes the source
-        source, targets = select_source_and_targets([f_src, f_t1, f_t2])
-        self.assertEqual(source.id(), 2)
-        self.assertEqual(sorted(t.id() for t in targets), [5, 9])
+class TestEditableFields(unittest.TestCase):
+    def test_skips_primary_key_and_key_names(self):
+        layer, _, _, _ = make_layer()
+        idxs = editable_field_indexes(layer)
+        self.assertEqual(idxs, [1, 2, 3])  # fid (idx 0) excluded
 
-    def test_requires_two_features(self):
-        f = MockFeature(1, [1])
-        with self.assertRaises(ValueError):
-            select_source_and_targets([f])
+    def test_skips_read_only(self):
+        layer, _, _, _ = make_layer(read_only_indexes=[2])
+        self.assertEqual(editable_field_indexes(layer), [1, 3])
 
 
-class TestCopyAttributes(unittest.TestCase):
-    def test_copies_non_key_fields(self):
+class TestCaptureSource(unittest.TestCase):
+    def test_snapshot_values(self):
+        layer, f_src, _, _ = make_layer()
+        snap = capture_source(layer, f_src)
+        self.assertEqual(snap, {1: "ROAD", 2: "primary", 3: 10})
+        # fid must never be captured
+        self.assertNotIn(0, snap)
+
+
+class TestApplySource(unittest.TestCase):
+    def test_applies_to_targets_not_source(self):
+        # The bug scenario: source has bigger fid than the empty target.
         layer, f_src, f_t1, f_t2 = make_layer()
-        # Force a known source explicitly (highest fid) and two targets.
-        result = copy_attributes(layer, f_src, [f_t1, f_t2])
+        snap = capture_source(layer, f_src)
+        result = apply_source(layer, snap, [f_t1, f_t2])
         self.assertTrue(result.success)
-        # name/type/value copied to both targets -> 3 fields * 2 targets = 6
-        self.assertEqual(result.attributes_copied, 6)
+        self.assertEqual(result.targets_updated, 2)
+        # targets receive the SOURCE values
         self.assertEqual(f_t1.attribute(1), "ROAD")
-        self.assertEqual(f_t1.attribute(2), "primary")
         self.assertEqual(f_t1.attribute(3), 10)
-        self.assertEqual(f_t2.attribute(1), "ROAD")
+        self.assertEqual(f_t2.attribute(2), "primary")
+        # source stays intact, never overwritten with empties
+        self.assertEqual(f_src.attribute(1), "ROAD")
+        self.assertEqual(f_src.attribute(3), 10)
 
-    def test_skips_primary_key_field(self):
-        layer, f_src, f_t1, f_t2 = make_layer()
-        copy_attributes(layer, f_src, [f_t1])
-        # fid (idx 0) must NOT be changed
-        self.assertEqual(f_t1.attribute(0), 2)
-        # ensure changeAttributeValue never called with idx 0
-        self.assertFalse(any(c[1] == 0 for c in layer.change_calls))
+    def test_primary_key_preserved_on_targets(self):
+        layer, f_src, f_t1, _ = make_layer()
+        snap = capture_source(layer, f_src)
+        apply_source(layer, snap, [f_t1])
+        self.assertEqual(f_t1.attribute(0), 2)  # fid untouched
 
     def test_undo_command_bracketing(self):
         layer, f_src, f_t1, _ = make_layer()
-        copy_attributes(layer, f_src, [f_t1])
-        self.assertEqual(layer.edit_commands, ["MatchProp: copy attributes"])
+        snap = capture_source(layer, f_src)
+        apply_source(layer, snap, [f_t1])
+        self.assertEqual(layer.edit_commands, ["MatchProp: apply properties"])
         self.assertEqual(layer.committed_commands, 1)
         self.assertEqual(layer.destroyed_commands, 0)
-
-    def test_read_only_field_excluded(self):
-        # field idx 2 ("type") is read-only -> never even attempted
-        layer, f_src, f_t1, _ = make_layer(read_only_indexes=[2])
-        result = copy_attributes(layer, f_src, [f_t1])
-        self.assertTrue(result.success)
-        self.assertFalse(any(c[1] == 2 for c in layer.change_calls))
-        self.assertEqual(f_t1.attribute(2), "")  # unchanged
+        self.assertEqual(layer.repaint_count, 1)
 
     def test_incompatible_field_skipped_silently(self):
-        # field idx 2 ("type") rejects the write at runtime -> recorded, no abort
         layer, f_src, f_t1, _ = make_layer(reject_write_indexes=[2])
-        result = copy_attributes(layer, f_src, [f_t1])
+        snap = capture_source(layer, f_src)
+        result = apply_source(layer, snap, [f_t1])
         self.assertTrue(result.success)
         self.assertIn("type", result.fields_skipped)
-        # other fields still copied
-        self.assertEqual(f_t1.attribute(1), "ROAD")
+        self.assertEqual(f_t1.attribute(1), "ROAD")  # others still applied
 
-
-class TestCopyStyle(unittest.TestCase):
-    def test_single_symbol_no_op(self):
-        layer, f_src, f_t1, _ = make_layer(renderer=MockSingleSymbolRenderer())
-        result = copy_style(layer, f_src, [f_t1])
-        self.assertEqual(result.style_action, "single-symbol-no-op")
-        self.assertEqual(layer.repaint_count, 1)
-
-    def test_categorized_copies_class_attribute(self):
-        layer, f_src, f_t1, f_t2 = make_layer(
+    def test_style_attribute_drives_categorized_symbol(self):
+        # For categorized renderers, copying the class attribute (here "type")
+        # is what makes the target inherit the source symbol.
+        layer, f_src, f_t1, _ = make_layer(
             renderer=MockCategorizedRenderer("type")
         )
-        result = copy_style(layer, f_src, [f_t1, f_t2])
-        self.assertEqual(result.style_action, "classified:type")
-        # class attribute "type" (idx 2) copied from source value "primary"
-        self.assertEqual(f_t1.attribute(2), "primary")
-        self.assertEqual(f_t2.attribute(2), "primary")
+        snap = capture_source(layer, f_src)
+        apply_source(layer, snap, [f_t1])
+        self.assertEqual(f_t1.attribute(2), "primary")  # class attr copied
         self.assertEqual(layer.repaint_count, 1)
-
-    def test_graduated_copies_class_attribute(self):
-        layer, f_src, f_t1, _ = make_layer(
-            renderer=MockGraduatedRenderer("value")
-        )
-        result = copy_style(layer, f_src, [f_t1])
-        self.assertEqual(result.style_action, "classified:value")
-        self.assertEqual(f_t1.attribute(3), 10)
-
-    def test_classified_missing_field(self):
-        layer, f_src, f_t1, _ = make_layer(
-            renderer=MockCategorizedRenderer("does_not_exist")
-        )
-        result = copy_style(layer, f_src, [f_t1])
-        self.assertEqual(result.style_action, "classified-field-missing")
-
-
-class TestMatchProperties(unittest.TestCase):
-    def test_full_flow_single_symbol(self):
-        layer, f_src, f_t1, f_t2 = make_layer()
-        result = match_properties(layer)
-        self.assertTrue(result.success)
-        # source is min fid (2) -> targets are fid 5 and 9
-        self.assertEqual(result.targets_updated, 2)
-        # targets inherit the source (fid 2) values: name "" type "" value 0
-        self.assertEqual(f_src.attribute(1), "")  # untouched (it's the source)
-
-    def test_full_flow_categorized(self):
-        layer, f_src, f_t1, f_t2 = make_layer(
-            renderer=MockCategorizedRenderer("type")
-        )
-        result = match_properties(layer)
-        self.assertTrue(result.success)
-        self.assertTrue(result.style_action.startswith("classified"))
-
-    def test_error_when_single_feature(self):
-        f = MockFeature(1, [1, "x", "y", 0])
-        layer = MockVectorLayer(
-            field_names=["fid", "name", "type", "value"],
-            features=[f],
-            pk_indexes=[0],
-        )
-        layer.setSelected([f])
-        result = match_properties(layer)
-        self.assertFalse(result.success)
-        self.assertIsNotNone(result.error)
 
 
 if __name__ == "__main__":

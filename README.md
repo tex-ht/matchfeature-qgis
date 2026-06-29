@@ -7,25 +7,27 @@ Copy **attributes + visual style** from one feature to one or more features
 
 ## What it does
 
-1. Select **1 source feature** + **1 or more target features** in the same
-   editable vector layer (use the native QGIS selection tool).
-2. Click the **MatchProp** button on the toolbar (or *Plugins ▸ MatchProp*).
-3. The plugin copies the source's attributes and visual style to the targets.
+Two-step workflow, exactly like AutoCAD's `MATCHPROP`:
 
-- **Source feature** = the selected feature with the **smallest `fid`**
-  (the first one selected), as agreed.
+1. Select **exactly 1 source feature** and click the **MatchProp** button →
+   its properties are **copied** (a green message confirms how many fields).
+2. Select **1 or more target features** and click the button **again** → the
+   copied properties are **applied** to the targets. The source is then cleared.
+
 - **Attributes**: copies every editable field, **skipping** primary-key /
   auto-increment columns (`fid`, `id`, …) and read-only fields.
-- **Style**: behaviour depends on the layer renderer:
-  - *Single Symbol* → nothing to do (the symbol is shared by the whole layer).
-  - *Categorized / Graduated* → copies the classification attribute value, so
-    the target inherits the source symbol.
-  - *Rule-based / other* → copying attributes lets the rules re-evaluate.
+- **Style**: for *Categorized / Graduated* renderers the classification
+  attribute is copied, so the target inherits the source symbol; *Single
+  Symbol* is shared by the whole layer (nothing to do).
 - **Fault tolerant**: incompatible fields are skipped silently (reported as a
   warning), the rest keep copying.
-- **Undo/Redo**: changes are wrapped in `beginEditCommand`/`endEditCommand`,
+- **Undo/Redo**: the apply step is wrapped in `beginEditCommand`/`endEditCommand`,
   so a single `Ctrl+Z` reverts the whole operation.
 - Works with **point, line and polygon** layers.
+
+> Why two steps? In QGIS the selection is an unordered *set*, so there is no
+> reliable "first selected" feature. The explicit copy-then-apply flow removes
+> any ambiguity about which feature is the source.
 
 ## Validations & feedback (QGIS message bar)
 
