@@ -7,6 +7,8 @@ Copy **attributes + visual style** from one feature to one or more features
 
 ![icon](matchfeature/icon.png)
 
+![MatchFeature demo](assets/matchfeature_demo.gif)
+
 ## What it does
 
 Two-step workflow ("match properties"):
