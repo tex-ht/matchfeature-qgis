@@ -4,7 +4,7 @@ qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
 description=Copy attributes and visual style from one feature to others in the same layer, in two steps (inspired by AutoCAD's MATCHPROP).
 about=MatchFeature brings the "match properties" idea to QGIS. It works in two simple steps inside a single editable vector layer: (1) select ONE source feature and click the button to COPY its attributes; (2) select one or more target features and click again to APPLY those values to them. It copies every editable field while skipping identifier/auto-increment columns (fid, id, id1, gid, objectid, *_id, ...) and read-only fields, and for Categorized/Graduated styles it copies the classification attribute so targets inherit the source symbol. Incompatible fields are skipped silently, the source feature is never modified, and the whole apply step is a single Undo (Ctrl+Z). Works with point, line and polygon layers. Idea & design by Hugo P. Teixeira; built with Emergent. Inspired by AutoCAD's MATCHPROP command.
-version=0.3.1
+version=0.4.0
 author=Hugo P. Teixeira & Emergent
 email=texfap@gmail.com
 
@@ -13,7 +13,8 @@ repository=https://github.com/tex-ht/matchfeature-qgis
 
 # Recommended items:
 hasProcessingProvider=no
-changelog=0.3.1 - Toolbar icon now fills the button (matches native QGIS icon size).
+changelog=0.4.0 - European Portuguese (PT-PT) interface when QGIS is set to Portuguese.
+    0.3.1 - Toolbar icon now fills the button (matches native QGIS icon size).
     0.3.0 - Renamed to MatchFeature (trademark-safe).
     0.2.1 - Smarter key-field detection (also skips id1, gid, objectid, *_id, ...); larger toolbar icon.
     0.2.0 - Two-step copy/paste workflow (pick source, then apply to targets) to avoid wrong source detection.

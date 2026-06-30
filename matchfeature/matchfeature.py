@@ -19,6 +19,41 @@ from qgis.core import Qgis, QgsWkbTypes
 from .matchfeature_core import capture_source, apply_source
 
 
+# European Portuguese (PT-PT) translations. Used automatically when the QGIS
+# interface locale starts with "pt". English is the source/fallback language.
+_PT_PT = {
+    "MatchFeature": "MatchFeature",
+    "Select an active vector layer first.":
+        "Selecione primeiro uma camada vetorial ativa.",
+    "This layer has no geometry.":
+        "Esta camada não tem geometria.",
+    "Layer is not in edit mode. Toggle editing and try again.":
+        "A camada não está em modo de edição. Ative a edição e tente novamente.",
+    "MatchFeature (2 steps): 1) select the SOURCE feature and click to "
+    "copy; 2) select the TARGET feature(s) and click again to apply.":
+        "MatchFeature (2 passos): 1) selecione a feição de ORIGEM e clique "
+        "para copiar; 2) selecione a(s) feição(ões) de DESTINO e clique "
+        "novamente para aplicar.",
+    "Step 1: select exactly 1 SOURCE feature, then click to copy "
+    "its properties.":
+        "Passo 1: selecione exatamente 1 feição de ORIGEM e clique para "
+        "copiar as suas propriedades.",
+    "Source copied (%d field(s)). Now select the target feature(s) "
+    "and click MatchFeature again to apply.":
+        "Origem copiada (%d campo(s)). Agora selecione a(s) feição(ões) de "
+        "destino e clique novamente em MatchFeature para aplicar.",
+    "Source is copied. Step 2: select at least 1 TARGET feature "
+    "(different from the source) and click again.":
+        "Origem já copiada. Passo 2: selecione pelo menos 1 feição de DESTINO "
+        "(diferente da origem) e clique novamente.",
+    "Error: ": "Erro: ",
+    "unknown error": "erro desconhecido",
+    " (skipped: ": " (ignorados: ",
+    "Properties applied to %d feature(s)":
+        "Propriedades aplicadas a %d feição(ões)",
+}
+
+
 class MatchFeature(object):
     """QGIS plugin implementation registering the MatchFeature action."""
 
@@ -36,8 +71,15 @@ class MatchFeature(object):
         self._source_fid = None        # feature id of the source
 
     # ------------------------------------------------------------------ utils
-    @staticmethod
-    def tr(message):
+    def tr(self, message):
+        """Translate UI strings. Uses PT-PT when the QGIS locale is Portuguese."""
+        try:
+            from qgis.PyQt.QtCore import QSettings
+            locale = QSettings().value("locale/userLocale", "") or ""
+        except Exception:
+            locale = ""
+        if str(locale).lower().startswith("pt"):
+            return _PT_PT.get(message, message)
         return QCoreApplication.translate("MatchFeature", message)
 
     def _icon(self):
